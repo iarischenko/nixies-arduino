@@ -183,7 +183,7 @@ void PrintTime()
   Serial.print(tm.Hour);
   Serial.print(":");
   if(tm.Minute < 10) Serial.print("0");
-  Serial.print(tm.Minute)
+  Serial.print(tm.Minute);
   Serial.print(":");
   if(tm.Second < 10) Serial.print("0");
   Serial.println(tm.Second);
