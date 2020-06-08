@@ -5,6 +5,7 @@
 /* dependency https://github.com/PaulStoffregen/Time */
 #include <DS3232RTC.h>
 
+#define TUBES_LINES 80
 
 #define SHUT  4
 #define DATA  10
@@ -13,23 +14,27 @@
 
 tmElements_t tm;
 
-// Bit array for 4 nixie tubes, 10 bits for each tube
-boolean nixieDisplayArray[40];
-
-// Current nixie tube dot state
-boolean dotState = 0;
-
-#define DOT_1 5
-#define DOT_2 6
-#define DOT_3 8
-#define DOT_4 9
+// Bit array for 6 nixie tubes, 12 bits for each tube, 4 hv5812 80 in total
+boolean nixieDisplayArray[TUBES_LINES];
 
 /* see schematic : the HV5812 drivers */
+
+
+
+#define T_L(base) (base + (20 - 
+
+/* number in the array is calculated in the following way: */
+/* base + (20 - hv5812_line) */
+/* example: tube 6, 0 digit: 60 + (20 - 19) = 61 */
+
           /*  0,  1, 2, 3, 4, 5, 6, 7,  8,  9 */
 int nixie1[]={10, 4, 5, 6, 7, 8, 9, 13, 12, 11};
-int nixie2[]={3, 19,18, 17, 16, 15, 14, 0, 1, 2};
+int nixie2[]={ 3, 19,18, 17, 16, 15, 14, 0, 1, 2};
 int nixie3[]={30,  24,  25,  26,  27,  28,  29,  33,  32,  31};
 int nixie4[]={23, 39, 38, 37, 36, 35, 34, 20, 21, 22};
+//            0    1   2   3   4   5   6   7   8  9
+int nixie5[]={46, 54, 53, 52, 50, 49, 48, 47, 43, 45};
+int nixie6[]={61, 65, 66, 67, 69, 64, 63, 62, 79, 60};
 
 /* Millis delay time variable */
 unsigned long previous_millis = 0;
@@ -101,17 +106,9 @@ void setup()
   pinMode(SHUT, OUTPUT);
   pinMode(CLOCK, OUTPUT);
   pinMode(DATA, OUTPUT);
-  pinMode(DOT_1, OUTPUT);
-  pinMode(DOT_2, OUTPUT);
-  pinMode(DOT_3, OUTPUT);
-  pinMode(DOT_4, OUTPUT);
   pinMode(STROBE, OUTPUT);
   digitalWrite(CLOCK, LOW);
   digitalWrite(DATA, LOW);
-  digitalWrite(DOT_1, LOW);
-  digitalWrite(DOT_2, LOW);
-  digitalWrite(DOT_3, LOW);
-  digitalWrite(DOT_4, LOW);
   digitalWrite(STROBE, LOW);
   /* turn on tubes power supply, boost converter MAX1771*/
   digitalWrite(SHUT, LOW);
@@ -191,7 +188,7 @@ void PrintTime()
 
 void UpdateTubes()
 {
-    for (int i = 39; i >= 0; i--)
+    for (int i = 0; i < TUBES_LINES; i++)
     {
         digitalWrite(DATA, nixieDisplayArray[i]);
         digitalWrite(CLOCK, HIGH);
@@ -208,28 +205,19 @@ void PreventPosoning()
 {
   int count = 0;
 
-  digitalWrite(DOT_1, HIGH);
-  digitalWrite(DOT_2, HIGH);
-  digitalWrite(DOT_3, HIGH);
-  digitalWrite(DOT_4, HIGH);
-
   for (; count <= 9; count++) {
-    for (int i = 39; i >= 0; i--)
+    for (int i = 59; i >= 0; i--)
         nixieDisplayArray[i] = 1;
 
     nixieDisplayArray[nixie1[count]] = 0;
     nixieDisplayArray[nixie2[count]] = 0;
     nixieDisplayArray[nixie3[count]] = 0;
     nixieDisplayArray[nixie4[count]] = 0;
+    nixieDisplayArray[nixie5[count]] = 0;
+    nixieDisplayArray[nixie6[count]] = 0;
 
     UpdateTubes();
   }
-
-  digitalWrite(DOT_1, LOW);
-  digitalWrite(DOT_2, LOW);
-  digitalWrite(DOT_3, LOW);
-  digitalWrite(DOT_4, LOW);
-
 }
 
 void DisplayTime()
@@ -240,39 +228,6 @@ void DisplayTime()
       RTC.read(tm);
       if (tm.Second == 0)
         PreventPosoning();
-        /* blink dot */
-        switch (tm.Second % 4) {
-          case (0):
-            digitalWrite(DOT_1, 1);
-            digitalWrite(DOT_2, 0);
-            digitalWrite(DOT_3, 0);
-            digitalWrite(DOT_4, 0);
-          break;
-          case (1):
-            digitalWrite(DOT_1, 0);
-            digitalWrite(DOT_2, 1);
-            digitalWrite(DOT_3, 0);
-            digitalWrite(DOT_4, 0);
-          break;
-          case (2):
-            digitalWrite(DOT_1, 0);
-            digitalWrite(DOT_2, 0);
-            digitalWrite(DOT_3, 1);
-            digitalWrite(DOT_4, 0);
-          break;
-          case (3):
-            digitalWrite(DOT_1, 0);
-            digitalWrite(DOT_2, 0);
-            digitalWrite(DOT_3, 0);
-            digitalWrite(DOT_4, 1);
-          break;
-          default:
-            digitalWrite(DOT_1, 0);
-            digitalWrite(DOT_2, 0);
-            digitalWrite(DOT_3, 0);
-            digitalWrite(DOT_4, 0);
-          break;
-        }
     }
 
     /* Print time on serial monitor: debug purpose */
@@ -336,8 +291,8 @@ void loop()
 {
   static int digit = 0;
 
-  if (actualcount != count) {     // Чтобы не загружать ненужным выводом в Serial, выводим состояние
-    actualcount = count;          // счетчика только в момент изменения
+  if (actualcount != count) {
+    actualcount = count;
     Serial.println(actualcount);
   }
 
@@ -352,85 +307,37 @@ void loop()
   }
 
   unsigned long current_millis = millis();
-  if(current_millis - previous_millis >= 50) {
+  if(current_millis - previous_millis >= 1000) {
+    int digit1, digit2, digit3, digit4, digit5, digit6;
     previous_millis = current_millis;
-    DisplayTime();
+    //DisplayTime();
+
+    digit1 = nixie1[digit];
+    digit2 = nixie2[digit];
+    digit3 = nixie3[digit];
+    digit4 = nixie4[digit];
+    digit5 = nixie5[digit];
+    digit6 = nixie6[digit];
+
+    for (int i = 0; i < TUBES_LINES; i++)
+        nixieDisplayArray[i] = 1;
+
+    /* Set bits corresponding to the nixie tubes cathodes */
+    nixieDisplayArray[digit1] = 0;
+    nixieDisplayArray[digit2] = 0;
+    nixieDisplayArray[digit3] = 0;
+    nixieDisplayArray[digit4] = 0;
+    nixieDisplayArray[digit5] = 0;
+    nixieDisplayArray[digit6] = 0;
+
+    UpdateTubes();
+
+    digit = (digit >= 9) ? 0 : digit + 1;
+    
   }
 
-  if(Serial.available()){
-    String sub_string;
-    int loc, val;
-
-    /* date format : H23 m55 Y50 D13 M03 */
-    time_string = Serial.readStringUntil('\n');
-    loc = time_string.indexOf("H");
-    if (loc != -1) {
-      sub_string = time_string.substring(loc + 1, loc + 3);
-      val = sub_string.toInt();
-      if (val > 24)
-        val = 24;
-      tm.Hour = val;
-    }
-    loc = time_string.indexOf("m");
-    if (loc != -1) {
-      sub_string = time_string.substring(loc + 1, loc + 3);
-      val = sub_string.toInt();
-      if (val > 60)
-        val = 60;
-      tm.Minute = val;
-    }
-    loc = time_string.indexOf("Y");
-    if (loc != -1) {
-      sub_string = time_string.substring(loc + 1, loc + 3);
-      val = sub_string.toInt();
-      if (val > 9999)
-        // year since 1970
-        val = 50;
-      tm.Year = val;
-    }
-    loc = time_string.indexOf("D");
-    if (loc != -1) {
-      sub_string = time_string.substring(loc + 1, loc + 3);
-      val = sub_string.toInt();
-      if (val > 31)
-        val = 31;
-      tm.Day = val;
-    }
-    loc = time_string.indexOf("M");
-    if (loc != -1) {
-      sub_string = time_string.substring(loc + 1, loc + 3);
-      val = sub_string.toInt();
-      if (val > 12)
-        val = 12;
-      tm.Month = val;
-    }
-    RTC.write(tm);
-  }
 }
 
-void show_edit_dot() {
-  digitalWrite(DOT_1, LOW);
-  digitalWrite(DOT_2, LOW);
-  digitalWrite(DOT_3, LOW);
-  digitalWrite(DOT_4, LOW);
-
-  switch (edit) {
-    case (EDIT_1) :
-      digitalWrite(DOT_4, HIGH);
-    break;
-    case (EDIT_2) :
-      digitalWrite(DOT_3, HIGH);
-    break;
-    case (EDIT_3) :
-      digitalWrite(DOT_2, HIGH);
-    break;
-    case (EDIT_4) :
-      digitalWrite(DOT_1, HIGH);
-    break;
-    default:
-    break;
-  }
-}
 
 void timer_handle_interrupts(int timer) {
   static int press_count = 0, not_press_count = 0;
@@ -443,7 +350,6 @@ void timer_handle_interrupts(int timer) {
       state = SW_PRESSED;
       /* Serial.println("BUTTON :: SW_PRESSED"); */
       edit = edit + 1;
-      show_edit_dot();
       if (edit == EDIT_END) {
         update_clock = true;
         edit = SHOW;
