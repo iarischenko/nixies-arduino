@@ -6,6 +6,7 @@
 #include <DS3232RTC.h>
 
 #define TUBES_LINES 60
+#define TUBES_COUNT 6
 #define DATA  12
 #define STROBE  11
 #define CLOCK 10
@@ -15,6 +16,9 @@ tmElements_t tm;
 
 // Bit array for 6 nixie tubes, 12 bits for each tube, 4 hv5812 80 in total
 boolean nixieDisplayArray[TUBES_LINES];
+
+// array of int numbers for the poisoning prevention
+int digits[TUBES_COUNT][10];
 
 /* see schematic : the HV5812 drivers */
 /* number in the array is calculated in the following way: */
@@ -142,10 +146,16 @@ void B()
 
 void setup()
 {
+  int count, count_tubes;
   /* initial modes: show and mode is hours-minuties */
   edit = SHOW;
   c_show = CLOCK_SC;
   new_show = CLOCK_SC;
+
+  for (count = 0; count < 10; count++)
+   for (count_tubes = 0; count_tubes < TUBES_COUNT; count_tubes++)
+     digits[count_tubes][count] = count;
+
 
   pinMode(CLOCK, OUTPUT);
   pinMode(DATA, OUTPUT);
@@ -185,23 +195,48 @@ void UpdateTubes()
     digitalWrite(STROBE, LOW);
 }
 
+void MoveNum()
+{
+
+  int count, count_tubes;
+
+  for (count = 0; count < TUBES_COUNT; count++) {
+    int a, b;
+
+    a = random(10);
+    b = random(10);
+
+    while (a == b) {
+      a = random(10);
+    }
+
+    int temp;
+    temp = digits[count][a];
+    digits[count][a] =  digits[count][b];
+    digits[count][b] = temp;
+  }
+}
+
+
 void PreventPosoning()
 {
   int count = 0;
+
+  MoveNum();
 
   for (; count <= 9; count++) {
     for (int i = TUBES_LINES; i >= 0; i--)
         nixieDisplayArray[i] = 1;
 
-    nixieDisplayArray[nixie1[count]] = 0;
-    nixieDisplayArray[nixie2[count]] = 0;
-    nixieDisplayArray[nixie3[count]] = 0;
-    nixieDisplayArray[nixie4[count]] = 0;
-    nixieDisplayArray[nixie5[count]] = 0;
-    nixieDisplayArray[nixie6[count]] = 0;
+    nixieDisplayArray[nixie1[digits[0][count]]] = 0;
+    nixieDisplayArray[nixie2[digits[1][count]]] = 0;
+    nixieDisplayArray[nixie3[digits[2][count]]] = 0;
+    nixieDisplayArray[nixie4[digits[3][count]]] = 0;
+    nixieDisplayArray[nixie5[digits[4][count]]] = 0;
+    nixieDisplayArray[nixie6[digits[5][count]]] = 0;
 
     UpdateTubes();
-    delay(100);
+    delay(150);
   }
 }
 
