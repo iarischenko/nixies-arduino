@@ -19,10 +19,7 @@
  */
 
 #include <libopencm3/stm32/rcc.h>
-#include <libopencm3/stm32/gpio.h>
 #include <libopencm3/stm32/usart.h>
-#include <libopencm3/cm3/nvic.h>
-#include <libopencm3/cm3/systick.h>
 #include <stdio.h>
 #include <errno.h>
 
@@ -90,46 +87,20 @@ static int32_t ring_read_ch(struct ring *ring, uint8_t *ch)
 	return ret;
 }
 
-/* Not used!
-static int32_t ring_read(struct ring *ring, uint8_t *data, ring_size_t size)
-{
-	int32_t i;
-
-	for (i = 0; i < size; i++) {
-		if (ring_read_ch(ring, data + i) < 0)
-			return i;
-	}
-
-	return -i;
-}
-*/
-
-/******************************************************************************
- * The example implementation
- *****************************************************************************/
-
 #define BUFFER_SIZE 1024
 
-struct ring output_ring;
-uint8_t output_ring_buffer[BUFFER_SIZE];
+static struct ring output_ring;
+static uint8_t output_ring_buffer[BUFFER_SIZE];
 
 int _write(int file, char *ptr, int len);
 
-static void clock_setup(void)
+void usart1_setup(void)
 {
-	rcc_clock_setup_pll(&rcc_hse_configs[RCC_CLOCK_HSE8_72MHZ]);
-
-	/* Enable GPIOA clock (for LED GPIOs). */
-	rcc_periph_clock_enable(RCC_GPIOC);
-
 	/* Enable clocks for GPIO port A (for GPIO_USART1_TX) and USART1. */
 	rcc_periph_clock_enable(RCC_GPIOA);
 	rcc_periph_clock_enable(RCC_AFIO);
 	rcc_periph_clock_enable(RCC_USART1);
-}
 
-static void usart_setup(void)
-{
 	/* Initialize output ring buffer. */
 	ring_init(&output_ring, output_ring_buffer, BUFFER_SIZE);
 
@@ -159,23 +130,11 @@ static void usart_setup(void)
 	usart_enable(USART1);
 }
 
-static void gpio_setup(void)
-{
-	gpio_set(GPIOC, GPIO12);
-
-	/* Setup GPIO6 and 7 (in GPIO port A) for LED use. */
-	gpio_set_mode(GPIOC, GPIO_MODE_OUTPUT_50_MHZ,
-		      GPIO_CNF_OUTPUT_PUSHPULL, GPIO12);
-}
-
 void usart1_isr(void)
 {
 	/* Check if we were called because of RXNE. */
 	if (((USART_CR1(USART1) & USART_CR1_RXNEIE) != 0) &&
 	    ((USART_SR(USART1) & USART_SR_RXNE) != 0)) {
-
-		/* Indicate that we got data. */
-		gpio_toggle(GPIOC, GPIO12);
 
 		/* Retrieve the data from the peripheral. */
 		ring_write_ch(&output_ring, usart_recv(USART1));
@@ -221,54 +180,3 @@ int _write(int file, char *ptr, int len)
 	return -1;
 }
 
-static void systick_setup(void)
-{
-	/* 72MHz / 8 => 9000000 counts per second. */
-	systick_set_clocksource(STK_CSR_CLKSOURCE_AHB_DIV8);
-
-	/* 9000000/9000 = 1000 overflows per second - every 1ms one interrupt */
-	/* SysTick interrupt every N clock pulses: set reload to N-1 */
-	systick_set_reload(8999);
-
-	systick_interrupt_enable();
-
-	/* Start counting. */
-	systick_counter_enable();
-}
-
-void sys_tick_handler(void)
-{
-	static int counter = 0;
-	static float fcounter = 0.0;
-	static double dcounter = 0.0;
-	static uint32_t temp32 = 0;
-
-	temp32++;
-
-	/*
-	 * We call this handler every 1ms so we are sending hello world
-	 * every 10ms / 100Hz.
-	 */
-	if (temp32 == 10) {
-		printf("Hello World! %i %f %f\r\n", counter, fcounter,
-		       dcounter);
-		counter++;
-		fcounter += 0.01;
-		dcounter += 0.01;
-
-		temp32 = 0;
-	}
-}
-
-int main(void)
-{
-	clock_setup();
-	gpio_setup();
-	usart_setup();
-	systick_setup();
-
-	while (1)
-		__asm__("nop");
-
-	return 0;
-}
