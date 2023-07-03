@@ -38,9 +38,14 @@ typedef uint8_t FUSB302_event_t;
 
 typedef struct {
     /* setup by user */
+    /* i2c bus */
+    uint32_t i2c_bus;
+    /* device address */
     uint8_t i2c_address;
-    FUSB302_ret_t (*i2c_read)(uint8_t dev_addr, uint8_t reg_addr, uint8_t *data, uint8_t count);
-    FUSB302_ret_t (*i2c_write)(uint8_t dev_addr, uint8_t reg_addr, uint8_t *data, uint8_t count);
+    FUSB302_ret_t (*i2c_read)(uint32_t bus, uint8_t dev_addr, uint8_t reg_addr,
+            uint8_t *data, uint8_t count);
+    FUSB302_ret_t (*i2c_write)(uint32_t bus, uint8_t dev_addr,
+            uint8_t reg_addr, uint8_t *data, uint8_t count);
     FUSB302_ret_t (*delay_ms)(uint32_t t);
 
     /* used by this library */

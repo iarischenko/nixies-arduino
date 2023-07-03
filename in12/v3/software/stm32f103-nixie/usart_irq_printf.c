@@ -20,6 +20,8 @@
 
 #include <libopencm3/stm32/rcc.h>
 #include <libopencm3/stm32/usart.h>
+#include <libopencm3/stm32/gpio.h>
+#include <libopencm3/cm3/nvic.h>
 #include <stdio.h>
 #include <errno.h>
 
@@ -92,6 +94,7 @@ static int32_t ring_read_ch(struct ring *ring, uint8_t *ch)
 static struct ring output_ring;
 static uint8_t output_ring_buffer[BUFFER_SIZE];
 
+void usart1_setup(void);
 int _write(int file, char *ptr, int len);
 
 void usart1_setup(void)

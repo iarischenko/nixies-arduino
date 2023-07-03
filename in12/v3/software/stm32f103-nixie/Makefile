@@ -1,8 +1,15 @@
 PROJECT = stm32f103-nixie
 BUILD_DIR = bin
 
-SHARED_DIR = ../my-common-code
-CFILES = main.c
+CFLAGS += -Wno-unused-parameter
+
+SHARED_DIR = ../my-common-code ../PD_Micro/src
+CFILES = main.c  \
+		 usart_irq_printf.c \
+		 PD_UFP_Protocol.c \
+		 FUSB302_UFP.c \
+		 PD_UFP.c
+
 CFILES += api.c
 AFILES += api-asm.S
 
