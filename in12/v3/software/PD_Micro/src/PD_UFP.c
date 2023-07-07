@@ -94,7 +94,10 @@ void PD_init(struct usb_pd_pps *c, enum PD_power_option_t power_option)
 {
     memset(c, 0x0, sizeof(*c));
     c->status_power = STATUS_POWER_NA;
-    PD_init_PPS(c, 0, 0, power_option);
+    c->status_log_level = PD_LOG_LEVEL_VERBOSE;
+    //PD_init_PPS(c, 0, 0, power_option);
+    //
+    PD_init_PPS(c, PPS_V(13.0), PPS_A(1), power_option);
 }
 
 void PD_init_PPS(struct usb_pd_pps *c, uint16_t PPS_voltage,
@@ -107,6 +110,8 @@ void PD_init_PPS(struct usb_pd_pps *c, uint16_t PPS_voltage,
     c->FUSB302.i2c_read = FUSB302_i2c_read;
     c->FUSB302.i2c_write = FUSB302_i2c_write;
     c->FUSB302.delay_ms = FUSB302_delay_ms;
+
+    FUSB302_tx_hard_reset(&c->FUSB302);
 
     if (FUSB302_init(&c->FUSB302) == FUSB302_SUCCESS
             && FUSB302_get_ID(&c->FUSB302, 0, 0) == FUSB302_SUCCESS) {
@@ -132,7 +137,7 @@ void PD_run(struct usb_pd_pps *c)
 {
     uint8_t i = 0;
 
-    if (PD_timer(c) ||  gpio_get(PIN_FUSB302_PORT, PIN_FUSB302_INT) == 0) {
+    if (PD_timer(c) || (gpio_get(PIN_FUSB302_PORT, PIN_FUSB302_INT) == 0)) {
         FUSB302_event_t FUSB302_events = 0;
         for (i = 0; i < 3 &&
                 FUSB302_alert(&c->FUSB302, &FUSB302_events) != FUSB302_SUCCESS; i++) {}
@@ -170,7 +175,16 @@ static FUSB302_ret_t FUSB302_i2c_read(uint32_t i2c_bus, uint8_t dev_addr,
 static FUSB302_ret_t FUSB302_i2c_write(uint32_t i2c_bus, uint8_t dev_addr,
         uint8_t reg_addr, uint8_t *data, uint8_t count)
 {
-    i2c_transfer7(i2c_bus, dev_addr, &reg_addr, count, data, 0);
+#define WRITE_BUFFER_SIZE 64
+    uint8_t buffer[WRITE_BUFFER_SIZE] = {};
+
+    if (count + 1 > WRITE_BUFFER_SIZE)
+        return FUSB302_ERR_WRITE_DEVICE;
+
+    buffer[0] = reg_addr;
+    memcpy(&buffer[1], data, count);
+
+    i2c_transfer7(i2c_bus, dev_addr, buffer, count + 1, NULL, 0);
     return FUSB302_SUCCESS;
 }
 
@@ -339,6 +353,7 @@ void status_power_ready(struct usb_pd_pps *c, status_power_t status,
     do  {                                                                      \
             n = printf("%10lu:", system_millis);                               \
             n += printf(format, ## __VA_ARGS__);                               \
+            n += printf("\r");                                                 \
     } while (0)
 
 static int status_log_readline_msg(struct usb_pd_pps *c, uint16_t msg_header,

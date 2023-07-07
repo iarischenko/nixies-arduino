@@ -33,8 +33,15 @@ void sys_tick_handler(void)
 extern void usart1_setup(void);
 
 int main(void) {
-/*  int i = 0; */
+    int i = 0;
     struct usb_pd_pps context = {};
+    volatile int wait = 0;
+
+    while (wait)
+    {
+        for (i = 0; i < 0x8000; i++)
+            __asm__("nop");
+    }
 
     /* clock */
     rcc_clock_setup_pll(&rcc_hse_configs[RCC_CLOCK_HSE8_72MHZ]);
@@ -43,7 +50,8 @@ int main(void) {
     /* logs */
     usart1_setup();
 
-    PD_init_PPS(&context, PPS_V(13.0), PPS_A(1), PD_POWER_OPTION_MAX_15V);
+    PD_init(&context, PD_POWER_OPTION_MAX_20V);
+    //PD_init_PPS(&context, PPS_V(13.0), PPS_A(1), PD_POWER_OPTION_MAX_15V);
 
     while (1) {
         PD_run(&context);

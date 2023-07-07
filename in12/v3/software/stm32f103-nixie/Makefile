@@ -1,7 +1,7 @@
 PROJECT = stm32f103-nixie
 BUILD_DIR = bin
 
-CFLAGS += -Wno-unused-parameter
+CFLAGS += -Wno-unused-parameter -g -O0 -DDEBUG
 
 SHARED_DIR = ../my-common-code ../PD_Micro/src
 CFILES = main.c  \
