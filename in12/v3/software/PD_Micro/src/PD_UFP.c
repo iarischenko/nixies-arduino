@@ -95,9 +95,8 @@ void PD_init(struct usb_pd_pps *c, enum PD_power_option_t power_option)
     memset(c, 0x0, sizeof(*c));
     c->status_power = STATUS_POWER_NA;
     c->status_log_level = PD_LOG_LEVEL_VERBOSE;
-    //PD_init_PPS(c, 0, 0, power_option);
-    //
-    PD_init_PPS(c, PPS_V(13.0), PPS_A(1), power_option);
+    PD_init_PPS(c, 0, 0, power_option);
+    //PD_init_PPS(c, PPS_V(13.0), PPS_A(1), power_option);
 }
 
 void PD_init_PPS(struct usb_pd_pps *c, uint16_t PPS_voltage,
@@ -353,7 +352,6 @@ void status_power_ready(struct usb_pd_pps *c, status_power_t status,
     do  {                                                                      \
             n = printf("%10lu:", system_millis);                               \
             n += printf(format, ## __VA_ARGS__);                               \
-            n += printf("\r");                                                 \
     } while (0)
 
 static int status_log_readline_msg(struct usb_pd_pps *c, uint16_t msg_header,
@@ -369,7 +367,7 @@ static int status_log_readline_msg(struct usb_pd_pps *c, uint16_t msg_header,
         LOG("%cX %s id=%d %sraw=0x%04X\n", type, info.name, info.id, ext,
                 msg_header);
     } else {
-        LOG("%10lu%cX %s\n", system_millis, type, info.name);
+        LOG("%cX %s\n", type, info.name);
     }
 
     if (obj)
@@ -387,23 +385,27 @@ static int status_log_readline_src_cap(struct usb_pd_pps *c)
     PD_power_info_t p = {};
     int n = 0;
     uint8_t i = 0;
-    if (PD_protocol_get_power_info(&c->protocol, i, &p)) {
+    while (PD_protocol_get_power_info(&c->protocol, i, &p)) {
         /* PD_power_data_obj_type_t */
         const char * str_pps[] = {"", " BAT", " VAR", " PPS"};
         uint8_t selected = PD_protocol_get_selected_power(&c->protocol);
         char min_v[8] = {0}, max_v[8] = {0}, power[8] = {0};
 
-        if (p.min_v)
-            LOG("%d.%02dV-", p.min_v / 20, (p.min_v * 5) % 100);
-        if (p.max_v)
-            LOG("%d.%02dV", p.max_v / 20, (p.max_v * 5) % 100);
-        if (p.max_i) {
-            LOG("%d.%02dA", p.max_i / 100, p.max_i % 100);
-        } else {
-            LOG("%d.%02dW", p.max_p / 4, p.max_p * 25);
-        }
-        LOG("[%d] %s%s %s%s%s\n", i, min_v, max_v, power,
+        LOG("[%d] %s%s %s%s%s ", i, min_v, max_v, power,
                 str_pps[p.type], i == selected ? " *" : "");
+
+        if (p.min_v)
+            printf("%d.%02dV-", p.min_v / 20, (p.min_v * 5) % 100);
+        if (p.max_v)
+            printf("%d.%02dV", p.max_v / 20, (p.max_v * 5) % 100);
+        if (p.max_i) {
+            printf("%d.%02dA", p.max_i / 100, p.max_i % 100);
+        } else {
+            printf("%d.%02dW", p.max_p / 4, p.max_p * 25);
+        }
+
+        printf("\n");
+        i++;
     }
     return n;
 }
