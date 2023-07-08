@@ -155,56 +155,6 @@ X A 2 150 0 100 L 50 50 1 1 P
 ENDDRAW
 ENDDEF
 #
-# Isolator_LTV-352T
-#
-DEF Isolator_LTV-352T U 0 40 Y Y 1 F N
-F0 "U" -300 200 50 H V L CNN
-F1 "Isolator_LTV-352T" 0 200 50 H V L CNN
-F2 "Package_SO:SO-4_4.4x3.6mm_P2.54mm" -300 -200 50 H I L CIN
-F3 "" 0 0 50 H I L CNN
-$FPLIST
- SO*4.4x3.6mm*P2.54mm*
-$ENDFPLIST
-DRAW
-C 70 -15 5 0 1 0 N
-C 160 -100 5 0 1 0 N
-C 160 100 5 0 1 0 N
-C 200 -100 5 0 1 0 N
-C 200 100 5 0 1 0 N
-S 80 -90 130 -110 0 0 0 N
-S -300 150 300 -150 0 1 10 f
-P 2 0 0 0 160 -100 130 -100 N
-P 3 0 0 0 70 -10 70 -100 80 -100 N
-P 2 0 1 10 -150 -25 -100 -25 N
-P 2 0 1 0 20 40 70 -10 N
-P 2 0 1 0 20 50 70 100 N
-P 2 0 1 14 20 85 20 5 N
-P 2 0 1 0 70 100 300 100 N
-P 2 0 1 0 110 -20 160 -70 N
-P 2 0 1 0 110 -15 70 -15 N
-P 2 0 1 0 110 -10 160 40 N
-P 2 0 1 0 160 -100 300 -100 N
-P 2 0 1 0 160 -70 160 -100 N
-P 2 0 1 0 160 40 160 100 N
-P 2 0 1 10 175 25 225 25 N
-P 2 0 1 0 200 25 200 100 N
-P 2 0 1 0 200 30 200 -100 N
-P 3 0 1 0 -300 100 -125 100 -125 25 N
-P 3 0 1 0 -125 35 -125 -100 -300 -100 N
-P 3 0 1 14 110 25 110 -55 110 -55 N
-P 4 0 1 10 -125 -25 -150 25 -100 25 -125 -25 N
-P 4 0 1 0 60 0 50 20 40 10 60 0 N
-P 4 0 1 0 150 -60 140 -40 130 -50 150 -60 N
-P 4 0 1 10 200 25 175 -25 225 -25 200 25 N
-P 5 0 1 0 -70 0 -20 0 -35 -5 -35 5 -20 0 N
-P 5 0 1 0 -70 40 -20 40 -35 35 -35 45 -20 40 N
-X ~ 1 -400 100 100 R 50 50 1 1 P
-X ~ 2 -400 -100 100 R 50 50 1 1 P
-X ~ 3 400 -100 100 L 50 50 1 1 P
-X ~ 4 400 100 100 L 50 50 1 1 P
-ENDDRAW
-ENDDEF
-#
 # MCU_Module_Arduino_UNO_R3
 #
 DEF MCU_Module_Arduino_UNO_R3 A 0 20 Y Y 1 F N
@@ -252,11 +202,11 @@ X A0 9 500 0 100 L 50 50 1 1 B
 ENDDRAW
 ENDDEF
 #
-# custom_library_B82477R4224M100
+# clock_top-rescue_B82477R4224M100-custom_library
 #
-DEF custom_library_B82477R4224M100 L 0 40 Y Y 1 F N
+DEF clock_top-rescue_B82477R4224M100-custom_library L 0 40 Y Y 1 F N
 F0 "L" 0 0 50 H V C CNN
-F1 "custom_library_B82477R4224M100" 0 0 50 H V C CNN
+F1 "clock_top-rescue_B82477R4224M100-custom_library" 0 0 50 H V C CNN
 F2 "Inductor_SMD:L_12x12mm_H8mm" 0 0 50 H I C CNN
 F3 "" 0 0 50 H I C CNN
 DRAW
@@ -269,11 +219,11 @@ X 2 2 0 -150 50 U 50 50 1 1 P
 ENDDRAW
 ENDDEF
 #
-# custom_library_ES2J
+# clock_top-rescue_ES2J-custom_library
 #
-DEF custom_library_ES2J VD 0 40 Y Y 1 F N
+DEF clock_top-rescue_ES2J-custom_library VD 0 40 Y Y 1 F N
 F0 "VD" 0 0 50 H V C CNN
-F1 "custom_library_ES2J" 0 0 50 H V C CNN
+F1 "clock_top-rescue_ES2J-custom_library" 0 0 50 H V C CNN
 F2 "Diode_SMD:D_SMB_Handsoldering" 0 0 50 H I C CNN
 F3 "" 0 0 50 H I C CNN
 DRAW
@@ -285,11 +235,11 @@ X A 2 200 -100 100 L 50 50 1 1 P
 ENDDRAW
 ENDDEF
 #
-# custom_library_HV
+# clock_top-rescue_HV-custom_library
 #
-DEF custom_library_HV #PWR 0 0 N N 1 F P
+DEF clock_top-rescue_HV-custom_library #PWR 0 0 N N 1 F P
 F0 "#PWR" 0 -150 50 H I C CNN
-F1 "custom_library_HV" 0 140 50 H V C CNN
+F1 "clock_top-rescue_HV-custom_library" 0 140 50 H V C CNN
 F2 "" 0 0 50 H I C CNN
 F3 "" 0 0 50 H I C CNN
 DRAW
@@ -300,11 +250,11 @@ X HV 1 0 0 0 U 50 50 1 1 W N
 ENDDRAW
 ENDDEF
 #
-# custom_library_HV5812
+# clock_top-rescue_HV5812-custom_library
 #
-DEF custom_library_HV5812 D 0 40 Y Y 1 F N
+DEF clock_top-rescue_HV5812-custom_library D 0 40 Y Y 1 F N
 F0 "D" 0 850 50 H V C CNN
-F1 "custom_library_HV5812" 0 -850 50 H V C CNN
+F1 "clock_top-rescue_HV5812-custom_library" 0 -850 50 H V C CNN
 F2 "Package_SO:SOIC-28W_7.5x17.9mm_P1.27mm" 0 850 50 H I C CNN
 F3 "" 0 850 50 H I C CNN
 DRAW
@@ -340,11 +290,11 @@ X HVOUT14 9 600 -150 100 L 50 50 1 1 P
 ENDDRAW
 ENDDEF
 #
-# custom_library_HV_C
+# clock_top-rescue_HV_C-custom_library
 #
-DEF custom_library_HV_C #PWR 0 0 N N 1 F P
+DEF clock_top-rescue_HV_C-custom_library #PWR 0 0 N N 1 F P
 F0 "#PWR" 0 -150 50 H I C CNN
-F1 "custom_library_HV_C" 0 140 50 H V C CNN
+F1 "clock_top-rescue_HV_C-custom_library" 0 140 50 H V C CNN
 F2 "" 0 0 50 H I C CNN
 F3 "" 0 0 50 H I C CNN
 DRAW
@@ -355,11 +305,11 @@ X HV_C 1 0 0 0 U 50 50 1 1 W N
 ENDDRAW
 ENDDEF
 #
-# custom_library_IN-12B
+# clock_top-rescue_IN-12B-custom_library
 #
-DEF custom_library_IN-12B LL 0 40 Y Y 1 F N
+DEF clock_top-rescue_IN-12B-custom_library LL 0 40 Y Y 1 F N
 F0 "LL" 0 350 50 H V C CNN
-F1 "custom_library_IN-12B" 50 -950 50 H V C CNN
+F1 "clock_top-rescue_IN-12B-custom_library" 50 -950 50 H V C CNN
 F2 "clock:IN-12B" 0 350 50 H I C CNN
 F3 "" 0 350 50 H I C CNN
 DRAW
@@ -379,11 +329,11 @@ X 3 9 -200 -500 100 R 50 50 1 1 P
 ENDDRAW
 ENDDEF
 #
-# custom_library_MAX1771
+# clock_top-rescue_MAX1771-custom_library
 #
-DEF custom_library_MAX1771 D 0 40 Y Y 1 F N
+DEF clock_top-rescue_MAX1771-custom_library D 0 40 Y Y 1 F N
 F0 "D" 350 550 50 H V C CNN
-F1 "custom_library_MAX1771" 500 450 50 H V C CNN
+F1 "clock_top-rescue_MAX1771-custom_library" 500 450 50 H V C CNN
 F2 "Package_DIP:DIP-8_W7.62mm" 350 550 50 H I C CNN
 F3 "" 350 550 50 H I C CNN
 DRAW
@@ -399,11 +349,11 @@ X CS 8 700 -50 100 L 50 50 1 1 I
 ENDDRAW
 ENDDEF
 #
-# custom_library_STD18N55M5
+# clock_top-rescue_STD18N55M5-custom_library
 #
-DEF custom_library_STD18N55M5 VT 0 40 Y Y 1 F N
+DEF clock_top-rescue_STD18N55M5-custom_library VT 0 40 Y Y 1 F N
 F0 "VT" -100 -150 50 H V C CNN
-F1 "custom_library_STD18N55M5" 0 -250 50 H V C CNN
+F1 "clock_top-rescue_STD18N55M5-custom_library" 0 -250 50 H V C CNN
 F2 "Package_TO_SOT_SMD:TO-263-2" -100 -150 50 H I C CNN
 F3 "" -100 -150 50 H I C CNN
 DRAW
@@ -427,27 +377,11 @@ X S 3 -200 -200 100 U 50 50 1 1 P
 ENDDRAW
 ENDDEF
 #
-# custom_library_ZS-040
+# clock_top-rescue_ZS-042-custom_library
 #
-DEF custom_library_ZS-040 U 0 40 Y Y 1 F N
-F0 "U" -250 50 50 H V C CNN
-F1 "custom_library_ZS-040" -150 -550 50 H V C CNN
-F2 "" 0 0 50 H I C CNN
-F3 "" 0 0 50 H I C CNN
-DRAW
-S 0 0 -300 -500 0 1 0 N
-X RxD 1 100 -100 100 L 50 50 1 1 P
-X TxD 2 100 -200 100 L 50 50 1 1 P
-X GND 3 100 -300 100 L 50 50 1 1 P
-X VCC 4 100 -400 100 L 50 50 1 1 P
-ENDDRAW
-ENDDEF
-#
-# custom_library_ZS-042
-#
-DEF custom_library_ZS-042 U 0 40 Y Y 1 F N
+DEF clock_top-rescue_ZS-042-custom_library U 0 40 Y Y 1 F N
 F0 "U" 150 150 50 H V C CNN
-F1 "custom_library_ZS-042" 300 -700 50 H V C CNN
+F1 "clock_top-rescue_ZS-042-custom_library" 300 -700 50 H V C CNN
 F2 "clock:zs-042" 0 0 50 H I C CNN
 F3 "" 0 0 50 H I C CNN
 DRAW
