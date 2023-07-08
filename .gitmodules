@@ -1,3 +1,0 @@
-[submodule "libopencm3"]
-	path = in12/v3/software/libopencm3
-	url = https://github.com/libopencm3/libopencm3
