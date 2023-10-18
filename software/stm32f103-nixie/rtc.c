@@ -15,7 +15,7 @@ void rtc_isr(void)
 	rtc_clear_flag(RTC_SEC);
 
     count = rtc_read_time_couter();
-    printf("%s", ctime((const time_t *)&count));
+    //printf("%s", ctime((const time_t *)&count));
 }
 
 void setup_rtc(void);

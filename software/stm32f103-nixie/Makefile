@@ -8,7 +8,10 @@ CFILES = main.c  \
 		 usart_irq_printf.c \
 		 PD_UFP_Protocol.c \
 		 FUSB302_UFP.c \
-		 PD_UFP.c
+		 PD_UFP.c \
+		 pec16.c \
+		 rtc.c \
+		 nixie-tubes.c
 
 CFILES += api.c
 AFILES += api-asm.S
