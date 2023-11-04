@@ -10,8 +10,9 @@
 
 #include "api.h"
 #include "api-asm.h"
+#include "system.h"
 
-int power_good = 0;
+
 
 /* Set up a timer to create 1mS ticks. */
 static void systick_setup(void)
@@ -34,18 +35,144 @@ void sys_tick_handler(void)
     system_millis++;
 }
 
-extern void usart1_setup(void);
-extern void setup_pec16(void);
-extern void setup_rtc(void);
-extern void setup_tubes(void);
-extern void set_tubes(int digit1, int digit2, int digit3, int digit4, int digit5, int digit6);
+enum system_state *get_system_state(void)
+{
+    static enum system_state state = SHOW_CLOCK;
+    return &state;
+}
+
+static struct tm *get_setup_tm(void)
+{
+    static struct tm date = { 0 };
+    return &date;
+}
+
+void adjust_number(int i)
+{
+    struct tm *date = get_setup_tm();
+    enum system_state *state = get_system_state();
+
+    if ((*state) == SHOW_CLOCK)
+    {
+        return;
+    }
+
+    if ((*state) == SHOW_DIM_SEC)
+    {
+        if (i > 0 && date->tm_sec == 59)
+        {
+            date->tm_sec = 0;
+        }
+        else if (i < 0 && date->tm_sec == 0)
+        {
+            date->tm_sec = 59;
+        }
+        else
+            date->tm_sec = date->tm_sec + i;
+    }
+    else if ((*state) == SHOW_DIM_MIN)
+    {
+        if (i > 0 && date->tm_min == 59)
+        {
+            date->tm_min = 0;
+        }
+        else if (i < 0 && date->tm_min == 0)
+        {
+            date->tm_min = 59;
+        }
+        else
+            date->tm_min = date->tm_min + i;
+    }
+    else 
+    {
+        if (i > 0 && date->tm_hour == 23)
+        {
+            date->tm_hour = 0;
+        }
+        else if (i < 0 && date->tm_hour == 0)
+        {
+            date->tm_hour = 23;
+        }
+        else
+            date->tm_hour = date->tm_hour + i;
+    }
+}
+
+void step_to_next_state(void)
+{
+    enum system_state *state = get_system_state();
+    struct tm *date = get_setup_tm();
+
+    if (*state == SHOW_CLOCK)
+    {
+        get_system_time(date);
+        *state = SHOW_DIM_SEC;
+    }
+    else if (*state >= SHOW_DIM_HOUR)
+    {
+        *state = SHOW_CLOCK;
+        set_system_time(date);
+    }
+    else
+    {
+        enum system_state st = *state;
+        st++;
+        *state = st;
+    }
+}
+
+#define CONVERT(a) a.tm_sec % 10, a.tm_sec / 10,\
+                   a.tm_min % 10, a.tm_min / 10,\
+                   a.tm_hour %10, a.tm_hour/ 10
+
+
+#define CONVERTP(a) a->tm_sec % 10, a->tm_sec / 10,\
+                   a->tm_min % 10, a->tm_min / 10,\
+                   a->tm_hour %10, a->tm_hour/ 10
+
+
+static void update_system_state(void )
+{
+    bool *is_time_updated = get_rtc_updated_flag();
+    enum system_state *state = get_system_state();
+    //int h_hour, l_hour, h_min, l_min, h_sec, l_sec;
+
+    if (*is_time_updated && *state == SHOW_CLOCK)
+    {
+        struct tm date = { 0 };
+        *is_time_updated = false;
+
+        get_system_time(&date);
+
+/*        h_hour = date.tm_hour / 10;
+        l_hour = date.tm_hour % 10;
+        h_min = date.tm_min / 10;
+        l_min = date.tm_min % 10;
+        h_sec = date.tm_sec / 10;
+        l_sec = date.tm_sec % 10;
+*/
+        if (date.tm_sec == 0)
+        {
+            tubes_refresh();
+        }
+        set_tubes(CONVERT(date));
+        //set_tubes(l_sec, h_sec, l_min,
+        //          h_min, l_hour, h_hour);
+    }
+    else if (*state != SHOW_CLOCK)
+    {
+        struct tm *date = get_setup_tm();
+        set_tubes(CONVERTP(date));
+    }
+}
 
 int main(void) {
+    int power_good = 0;
     int i = 0;
     struct usb_pd_pps context = {};
     volatile int wait = 0;
 
-    /* debug */
+    /* debug wait for connection */
     while (wait)
     {
         for (i = 0; i < 0x8000; i++)
@@ -75,18 +202,20 @@ int main(void) {
 
     while (1) {
         //PD_power_info_t p = { 0 };
+        struct tm current_time = { 0 };
+        bool *is_updated;
         PD_run(&context);
         static uint32_t prev_sec = 0;
 
         if (context.status_initialized)
-        {   /* voltage must be 12V or higher */
+        {   /* voltage must be 9V or higher */
             if (context.status_power == STATUS_POWER_TYP &&
-                context.ready_voltage >= 240)
+                context.ready_voltage >=  9 * 20 /*(int )PD_V(9.0) */)
             {
                 power_good  = 1;
             }
             else if (context.status_power == STATUS_POWER_PPS &&
-                context.ready_voltage >= 600)
+                context.ready_voltage >= 9 * 50 /*(int )PPS_V(9.0) */)
             {
                 power_good  = 1;
             }
@@ -103,6 +232,12 @@ int main(void) {
             gpio_set(GPIOA, GPIO3);
         }
 
+        if (power_good)
+        {
+            update_system_state();
+        }
+        
+/*
         if ((system_millis / 1000) > prev_sec )
         {
             static int i = 0;
@@ -117,7 +252,7 @@ int main(void) {
                 i = 0;
             }
         }
-
+*/
         //uint8_t selected_power = PD_protocol_get_selected_power(&context.protocol);
         //PD_protocol_get_power_info(&context.protocol, selected_power, &p);        /* for (i = 0; i < 0x800000; i++) */
         /*    __asm__("nop"); */

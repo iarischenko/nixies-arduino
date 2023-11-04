@@ -23,6 +23,7 @@
 #include <libopencm3/stm32/rcc.h>
 
 #include "PD_UFP.h"
+#include "libopencm3/stm32/f1/rcc.h"
 
 #define t_PD_POLLING            100
 #define t_TypeCSinkWaitCap      350
@@ -70,23 +71,55 @@ enum {
 
 static void i2c_gpio_setup(void)
 {
-	rcc_periph_clock_enable(RCC_I2C1);
 	rcc_periph_clock_enable(RCC_GPIOB);
 	rcc_periph_clock_enable(RCC_AFIO);
+	rcc_periph_clock_enable(RCC_I2C1);
 
-    gpio_set_mode(PIN_FUSB302_PORT, GPIO_MODE_INPUT, GPIO_CNF_INPUT_FLOAT,
+//        RCC_APB1RSTR_I2C1RST
+    //
+        
+        gpio_set_mode(GPIOB, GPIO_MODE_OUTPUT_2_MHZ, GPIO_CNF_OUTPUT_OPENDRAIN,
+                      GPIO6);
+        gpio_set_mode(GPIOB, GPIO_MODE_OUTPUT_2_MHZ, GPIO_CNF_OUTPUT_OPENDRAIN,
+                      GPIO7);
+
+	i2c_peripheral_enable(I2C1);
+
+    /* hack: generate stop condition - recover from uncomplited transaction */
+#define SCL GPIO6
+#define SDA GPIO7
+        while ((I2C_SR2(I2C1) & I2C_SR2_BUSY)) {
+            gpio_set(GPIOB, SCL);
+            gpio_set(GPIOB, SDA);
+            FUSB302_delay_ms(1);
+            gpio_clear(GPIOB, SCL);
+            FUSB302_delay_ms(1);
+            gpio_clear(GPIOB, SDA);
+            FUSB302_delay_ms(1);
+            gpio_set(GPIOB, SCL);
+            FUSB302_delay_ms(1);
+            gpio_set(GPIOB, SDA);
+            FUSB302_delay_ms(1);
+        }
+
+	gpio_set_mode(PIN_FUSB302_PORT, GPIO_MODE_INPUT, GPIO_CNF_INPUT_FLOAT,
             PIN_FUSB302_INT);
 	gpio_set_mode(GPIOB, GPIO_MODE_OUTPUT_50_MHZ,
 		      GPIO_CNF_OUTPUT_ALTFN_OPENDRAIN,
 		      GPIO_I2C1_SCL | GPIO_I2C1_SDA);
 
 	i2c_peripheral_disable(I2C1);
+        rcc_periph_reset_pulse(RST_I2C1);
 	i2c_set_clock_frequency(I2C1, 36);
 	i2c_set_fast_mode(I2C1);
 	i2c_set_ccr(I2C1, 0x1e);
 	i2c_set_trise(I2C1, 0x0b);
-	i2c_set_own_7bit_slave_address(I2C1, 0x32);
+        i2c_set_speed(I2C1, i2c_speed_sm_100k, 36); 
+	//i2c_set_own_7bit_slave_address(I2C1, 0x32);
+	i2c_set_own_7bit_slave_address(I2C1, 0x11);
 	i2c_peripheral_enable(I2C1);
+
+
 }
 
 
