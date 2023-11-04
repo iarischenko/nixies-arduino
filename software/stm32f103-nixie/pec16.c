@@ -7,6 +7,7 @@
 #include <libopencm3/stm32/gpio.h>
 #include <libopencm3/cm3/nvic.h>
 #include <libopencm3/stm32/exti.h>
+#include "system.h"
 
 extern uint32_t system_millis;
 
@@ -27,9 +28,10 @@ extern uint32_t system_millis;
 
 #define PEC_PORT GPIOB
 
-void setup_pec16(void);
 void setup_pec16(void)
 {
+  /* Enable AFIO clock. */
+  rcc_periph_clock_enable(RCC_AFIO);
   /* Enable GPIOA clock. */
   rcc_periph_clock_enable(RCC_GPIOB);
 
@@ -37,8 +39,6 @@ void setup_pec16(void)
   gpio_set_mode(PEC_PORT, GPIO_MODE_INPUT, GPIO_CNF_INPUT_FLOAT, A_PIN);
   gpio_set_mode(PEC_PORT, GPIO_MODE_INPUT, GPIO_CNF_INPUT_FLOAT, B_PIN);
 
-  /* Enable AFIO clock. */
-  rcc_periph_clock_enable(RCC_AFIO);
   /* Enable EXTI0 interrupt. */
   nvic_enable_irq(NVIC_EXTI9_5_IRQ);
   nvic_enable_irq(NVIC_EXTI15_10_IRQ);
@@ -62,14 +62,33 @@ static void set_count(int32_t state)
   static int32_t pos = 0;
   if (state == 4 || state == -4)
   {
-    pos = (state == 4) ? pos + 1 : pos - 1;
+    if (state == 4)
+    {
+      pos += 1;
+      adjust_number(1);
+    }
+    else
+    {
+      pos -= 1;
+      adjust_number(-1);
+    }
+    //pos = (state == 4) ? pos + 1 : pos - 1;
     printf("pos is %d\n", (int)pos);
   }
 }
 void exti9_5_isr(void)
 {
+  uint16_t sw = 0;
+
   exti_reset_request(EXTI_PR & (GPIO5));
   printf("SW\n");
+
+  sw = gpio_get(PEC_PORT, SW_GPIO);
+
+  if (sw)
+  {
+    step_to_next_state(); 
+  }
 }
 
 #define PAUSE 5

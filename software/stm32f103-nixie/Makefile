@@ -2,6 +2,7 @@ PROJECT = stm32f103-nixie
 BUILD_DIR = bin
 
 CFLAGS += -Wno-unused-parameter -g -O0 -DDEBUG
+CFLAGS += -DRTC_CALIBRATION_VALUE=81
 
 SHARED_DIR = ../my-common-code ../PD_Micro/src
 CFILES = main.c  \
