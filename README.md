@@ -4,8 +4,14 @@ IN12 nixie tubes.
 The clock is based on custom stm32 board, MAX1771 boost converter, HV5812 high
 voltage drivers, PEC16 encoder and FUSB302 usb pd phy.
 
+## folder structure
+freecad-project: case FreeCAD 3d models\
+kicad-projects : pcb's KiCAD projects\
+software       : libopencm3 based software for stm32 based MCU board
+
 ## IN12 v3
-Under development
+(master)
+[![in12 nixie tubes](https://img.youtube.com/vi/ojTo4SyceIE/sd1.jpg)](https://youtu.be/ojTo4SyceIE)
 
 ## IN12 v2
 see v2 tag

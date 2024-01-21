@@ -186,20 +186,15 @@ int main(void) {
     gpio_set(GPIOA, GPIO3);
 
     PD_init(&context, PD_POWER_OPTION_MAX_12V);
-    /* PD_init_PPS(&context, PPS_V(12.0), PPS_A(1), PD_POWER_OPTION_MAX_15V); */
+    //PD_init_PPS(&context, PPS_V(9.0), PPS_A(1), PD_POWER_OPTION_MAX_15V);
 
     while (1) {
+        static uint32_t power_bad = 0;
         PD_run(&context);
 
         if (context.status_initialized)
         {   /* voltage must be 9V or higher */
-            if (context.status_power == STATUS_POWER_TYP &&
-                context.ready_voltage >=  9 * 20 /*(int )PD_V(9.0) */)
-            {
-                power_good  = 1;
-            }
-            else if (context.status_power == STATUS_POWER_PPS &&
-                context.ready_voltage >= 9 * 50 /*(int )PPS_V(9.0) */)
+            if (context.ready_voltage >=  9 * 20 /*(int )PD_V(9.0) */)
             {
                 power_good  = 1;
             }
@@ -214,6 +209,18 @@ int main(void) {
             gpio_clear(GPIOA, GPIO3);
         } else {
             gpio_set(GPIOA, GPIO3);
+            if (power_bad == 0)
+            {
+                power_bad = system_millis;
+            }
+
+            if (system_millis > (power_bad + 1000))
+            {
+                /* one sec with out power */
+                power_bad = 0;
+                PD_init(&context, PD_POWER_OPTION_MAX_12V);
+                //PD_init_PPS(&context, PPS_V(9.0), PPS_A(1), PD_POWER_OPTION_MAX_15V);
+            }
         }
 
         if (power_good)
